@@ -1,0 +1,76 @@
+- name: "Apache Webserver"
+  hosts: all
+  tasks: 
+
+  - name: "Creating directory"
+    file:
+      state: directory
+      path: "/dvd"
+  
+  - name: "Mounting Directory"
+    mount:
+      src: "/dev/cdrom"
+      path: "/dvd"
+      state: mounted
+      fstype: "iso9660"
+  
+  - name: "Configuring DVD1"
+    yum_repository:
+       name: "dvd1"
+       baseurl: "/dvd/AppStream"
+       description: "AppStream"
+       gpgcheck: no
+ 
+  - name: "Configuring DVD2"
+    yum_repository:
+      name: "dvd2"
+      baseurl: "/dvd/BaseOS"
+      description: "BaseOS"
+      gpgcheck: no
+  
+  - name: "Docker repository"
+    yum_repository:
+      name: "docker"
+      description: "docker repo"
+      baseurl: "https://download.docker.com/linux/centos/7/x86_64/stable/"
+      gpgcheck: no    
+
+  - name: "Docker Installation"    
+    package:
+      name: "docker-ce-18.09.1-3.el7.x86_64"
+      state: present
+
+  - name: "starting Docker services"
+    service:
+      name: "docker"
+      state: started
+      enabled: yes
+
+  - name: "pip3 installation"
+    package:
+      name: "python36-3..6.8-1.module+el8+2710+846623d6.x86_64"
+      state: present
+
+  - name: "Installation of Docker sdk"
+    command: "pip3 install docker"
+
+  - name: "creating folder"
+    file:
+      path: "/task10"
+      state: directory
+
+  - name: "Copying HTML file"
+    copy:
+      src: "index.html"
+      dest: "/task10/"
+  
+  - name: "creating container using httpd image"
+    docker_container:
+      name: "Webserver"
+      image: "httpd"
+      state: started
+      exposed_ports: "80"
+      ports: "8080:80"
+      volumes: /task10:/usr/local/apache2/htdocs/
+
+     
